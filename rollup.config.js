@@ -1,15 +1,21 @@
+import * as path from 'path'
 import svelte from 'rollup-plugin-svelte'
 import resolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 
+import hmr from 'rollup-plugin-hot'
+import svelteHmr from './rollup-plugin-svelte-hmr/index'
+
 const production = !process.env.ROLLUP_WATCH
+
+const hot = true
 
 export default {
   input: 'src/main.js',
   output: {
-    sourcemap: true,
+    sourcemap: hot ? 'inline' : true,
     format: 'iife',
     name: 'app',
     file: 'public/bundle.js',
@@ -20,10 +26,14 @@ export default {
       dev: !production,
       // we'll extract any component CSS out into
       // a separate file — better for performance
-      css: css => {
-        css.write('public/bundle.css')
-      },
+      ...(!hot && {
+        css: css => {
+          css.write('public/bundle.css')
+        },
+      }),
     }),
+
+    svelteHmr(),
 
     // If you have external dependencies installed from
     // npm, you'll most likely need these plugins. In
@@ -37,13 +47,18 @@ export default {
     }),
     commonjs(),
 
+    hmr({
+      hot,
+      public: 'public',
+    }),
+
     // Watch the `public` directory and refresh the
     // browser on changes when not in production
-    !production && livereload('public'),
+    !hot && !production && livereload('public'),
 
     // If we're building for production (npm run build
     // instead of npm run dev), minify
-    production && terser(),
+    !hot && production && terser(),
   ],
   watch: {
     clearScreen: false,
