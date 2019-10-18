@@ -15,11 +15,8 @@ const svelteHmr = ({ hot = true, hotOptions = {} } = {}) => {
     transform(code, id) {
       if (!hot) return
       if (!filter(id)) return
-      let transformed = code
       this.addWatchFile(hotApi)
-      transformed = makeHot(id, code, hotOptions)
-      // DEBUG should prolly merit dedicated support in svelte-hmr
-      transformed = 'module = { hot: import.meta }; ' + transformed
+      const transformed = makeHot(id, code, hotOptions)
       return { code: transformed, map: null }
     },
   }
