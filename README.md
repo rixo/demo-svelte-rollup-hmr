@@ -21,9 +21,4 @@ npm run dev
 
 Open http://localhost:5000.
 
-In another terminal, type:
-
-```bash
-sed -i 's/purple/orange/g' src/App.svelte
-echo '<p>How are you?</p>' >> src/App.svelte
-```
+Go edit files in `src`!

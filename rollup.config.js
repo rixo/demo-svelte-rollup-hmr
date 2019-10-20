@@ -1,16 +1,14 @@
 import * as path from 'path'
-import svelte from 'rollup-plugin-svelte'
+import svelte from 'rollup-plugin-svelte-hot'
+import hmr from 'rollup-plugin-hot'
 import resolve from 'rollup-plugin-node-resolve'
 import commonjs from 'rollup-plugin-commonjs'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 
-import hmr from 'rollup-plugin-hot'
-import svelteHmr from './rollup-plugin-svelte-hmr/index'
-
 const production = !process.env.ROLLUP_WATCH
 
-const hot = true
+const hot = !production
 
 export default {
   input: 'src/main.js',
@@ -31,9 +29,18 @@ export default {
           css.write('public/bundle.css')
         },
       }),
+			hot: hot && {
+        noReload: false,
+        // `optimistic` will try to recover from runtime errors during component
+        // init (i.e. constructor). This kind of error can be more safely
+        // recovered from when your components are more pure. Otherwise, it can
+        // get really funky.
+        //
+        // Compile error are _always_ recovered from with Nollup.
+        //
+        optimistic: true,
+			},
     }),
-
-    svelteHmr(),
 
     // If you have external dependencies installed from
     // npm, you'll most likely need these plugins. In
@@ -47,11 +54,6 @@ export default {
     }),
     commonjs(),
 
-    hmr({
-      hot,
-      public: 'public',
-    }),
-
     // Watch the `public` directory and refresh the
     // browser on changes when not in production
     !hot && !production && livereload('public'),
@@ -59,6 +61,10 @@ export default {
     // If we're building for production (npm run build
     // instead of npm run dev), minify
     !hot && production && terser(),
+
+    hot && hmr({
+      public: 'public',
+    }),
   ],
   watch: {
     clearScreen: false,
